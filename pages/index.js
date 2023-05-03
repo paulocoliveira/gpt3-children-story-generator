@@ -7,8 +7,30 @@ const Home = () => {
 
   const [userInput, setUserInput] = useState('');
 
+  const [apiOutput, setApiOutput] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  const callGenerateEndpoint = async () => {
+    setIsGenerating(true);
+    
+    console.log("Calling OpenAI...")
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userInput }),
+    });
+
+    const data = await response.json();
+    const { output } = data;
+    console.log("OpenAI answered...", output.text)
+
+    setApiOutput(`${output.text}`);
+    setIsGenerating(false);
+  }
+
   const onUserChangedText = (event) => {
-    console.log(event.target.value);
     setUserInput(event.target.value);
   };
 
@@ -23,18 +45,31 @@ const Home = () => {
             <h2>Input the title of your history here, we will generate the rest for you!</h2>
           </div>
         </div>
-        {/* Adicione esse código aqui */}
         <div className="prompt-container">
-          <textarea className="prompt-box" placeholder="type here..." value={userInput} onChange={onUserChangedText} />
+          <textarea className="prompt-box" placeholder="Example: O pequeno garoto e seus cachorrinhos sapecas" value={userInput} onChange={onUserChangedText} />
         </div>
-        {/* Novo código que adicionei aqui */}
         <div className="prompt-buttons">
-          <a className="generate-button" onClick={null}>
+          <a
+            className={isGenerating ? 'generate-button loading' : 'generate-button'}
+            onClick={callGenerateEndpoint}
+          >
             <div className="generate">
-              <p>Gerar</p>
+            {isGenerating ? <span className="loader"></span> : <p>Generate</p>}
             </div>
           </a>
         </div>
+        {apiOutput && (
+        <div className="output">
+          <div className="output-header-container">
+            <div className="output-header">
+              <h3>Output</h3>
+            </div>
+          </div>
+          <div className="output-content">
+            <p>{apiOutput}</p>
+          </div>
+        </div>
+        )}
       </div>
       <div className="badge-container grow">
         <a
